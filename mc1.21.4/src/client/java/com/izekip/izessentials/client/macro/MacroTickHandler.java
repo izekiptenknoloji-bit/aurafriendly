@@ -3,8 +3,7 @@ package com.izekip.izessentials.client.macro;
 import com.izekip.izessentials.client.config.ConfigManager;
 import com.izekip.izessentials.client.config.ModConfig;
 import com.izekip.izessentials.client.config.ShortcutEntry;
-import com.izekip.izessentials.client.config.screen.ShortcutConfigScreen;
-import com.izekip.izessentials.client.gui.FriendsListScreen;
+import com.izekip.izessentials.client.gui.AuraMenuScreen;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
@@ -29,12 +28,8 @@ public final class MacroTickHandler {
 			return;
 		}
 
-		if (MacroSlots.openConfig != null && MacroSlots.openConfig.consumeClick()) {
-			Minecraft.getInstance().setScreen(new ShortcutConfigScreen(null));
-			return;
-		}
-		if (MacroSlots.openFriends != null && MacroSlots.openFriends.consumeClick()) {
-			Minecraft.getInstance().setScreen(new FriendsListScreen(null));
+		if (MacroSlots.openMenu != null && MacroSlots.openMenu.consumeClick()) {
+			Minecraft.getInstance().setScreen(new AuraMenuScreen(null));
 			return;
 		}
 

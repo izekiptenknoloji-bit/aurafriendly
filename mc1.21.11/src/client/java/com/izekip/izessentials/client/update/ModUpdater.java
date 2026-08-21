@@ -26,6 +26,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * GitHub Releases uzerinden guncelleme kontrolu + oto-indirme.
@@ -91,6 +92,87 @@ public final class ModUpdater {
 			return;
 		}
 		Thread.ofVirtual().name("aurafriendly-updater").start(ModUpdater::checkForUpdate);
+	}
+
+	/** "Guncellemeler" ekranindaki "Mevcut surum" satiri icin. */
+	public static String getLocalVersionFriendly() {
+		return FabricLoader.getInstance().getModContainer(MOD_ID)
+				.map(c -> c.getMetadata().getVersion().getFriendlyString())
+				.orElse("?");
+	}
+
+	/**
+	 * "Simdi Kontrol Et" butonu icin: oturum-basi bir kere kontrolu (CHECKED_THIS_SESSION)
+	 * beklemeden, GitHub'i hemen kontrol eder ve sonucu onStatus ile bildirir (client thread'inde).
+	 */
+	public static void checkNow(Consumer<String> onStatus) {
+		Thread.ofVirtual().name("aurafriendly-manual-check").start(() -> {
+			try {
+				Optional<ModContainer> containerOpt = FabricLoader.getInstance().getModContainer(MOD_ID);
+				if (containerOpt.isEmpty()) {
+					report(onStatus, "Mod bilgisi bulunamadi.");
+					return;
+				}
+				ModContainer container = containerOpt.get();
+				Version localVersion = container.getMetadata().getVersion();
+
+				HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+				HttpRequest request = HttpRequest.newBuilder(URI.create("https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest"))
+						.header("Accept", "application/vnd.github+json")
+						.timeout(Duration.ofSeconds(10))
+						.GET().build();
+				HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+				if (response.statusCode() != 200) {
+					report(onStatus, "GitHub'a ulasilamadi (HTTP " + response.statusCode() + ").");
+					return;
+				}
+
+				JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+				String tag = json.get("tag_name").getAsString();
+				String remoteVersionStr = tag.startsWith("v") ? tag.substring(1) : tag;
+
+				Version remoteVersion;
+				try {
+					remoteVersion = Version.parse(remoteVersionStr);
+				} catch (VersionParsingException e) {
+					report(onStatus, "Surum bilgisi okunamadi.");
+					return;
+				}
+
+				if (remoteVersion.compareTo(localVersion) <= 0) {
+					report(onStatus, "Guncelsin! (v" + localVersion.getFriendlyString() + ")");
+					return;
+				}
+
+				String downloadUrl = null;
+				String assetName = null;
+				JsonArray assets = json.getAsJsonArray("assets");
+				for (JsonElement element : assets) {
+					JsonObject asset = element.getAsJsonObject();
+					String name = asset.get("name").getAsString();
+					if (name.endsWith(ASSET_SUFFIX)) {
+						downloadUrl = asset.get("browser_download_url").getAsString();
+						assetName = name;
+						break;
+					}
+				}
+
+				if (downloadUrl == null) {
+					report(onStatus, "Yeni surum var (v" + remoteVersionStr + ") ama bu Minecraft surumu icin dosya yok.");
+					return;
+				}
+
+				report(onStatus, "Yeni surum bulundu: v" + remoteVersionStr + ", indiriliyor...");
+				downloadAndInstall(client, downloadUrl, assetName, container);
+				report(onStatus, "Yeni surum indirildi: v" + remoteVersionStr + ". Oyunu yeniden baslat.");
+			} catch (Exception e) {
+				report(onStatus, "Kontrol basarisiz: " + e.getMessage());
+			}
+		});
+	}
+
+	private static void report(Consumer<String> onStatus, String status) {
+		Minecraft.getInstance().execute(() -> onStatus.accept(status));
 	}
 
 	private static void checkForUpdate() {

@@ -64,6 +64,16 @@ public final class PresenceManager {
 		Thread.ofVirtual().name("aurafriendly-session-start").start(PresenceManager::beginSession);
 	}
 
+	/** Hesaptan cikis yapar: oturumu tamamen kapatir, tokenlari siler, sonra needsLogin() tekrar true dönsün diye altyapiyi taze halde yeniden kurar. */
+	public static void logout() {
+		if (auth != null) {
+			auth.signOut();
+		}
+		String address = serverAddress;
+		stop();
+		start(address);
+	}
+
 	public static void stop() {
 		if (!STARTED.compareAndSet(true, false)) {
 			return;

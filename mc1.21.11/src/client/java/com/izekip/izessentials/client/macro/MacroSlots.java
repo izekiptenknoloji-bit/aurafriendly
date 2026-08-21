@@ -11,12 +11,14 @@ import com.izekip.izessentials.client.config.ModConfig;
  * Sabit sayida genel "macro slot" KeyMapping'i olarak kaydeder. Hangi tusun
  * hangi metni gonderecegi ModConfig'te tutulur (bkz. ChatSender, MacroTickHandler) -
  * boylece tus sayisi sabit kalirken gonderilen komut tamamen kullaniciya kalir.
+ *
+ * Tum ekranlara (kisayollar, arkadaslar, guncellemeler, gizlilik) tek bir ana menu
+ * uzerinden erisiliyor - o menu de varsayilan olarak "L" tusuna baglidir.
  */
 public final class MacroSlots {
 	public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(IzEssentials.id("main"));
 	public static final KeyMapping[] SLOTS = new KeyMapping[ModConfig.SHORTCUT_SLOT_COUNT];
-	public static KeyMapping openConfig;
-	public static KeyMapping openFriends;
+	public static KeyMapping openMenu;
 
 	private MacroSlots() {
 	}
@@ -28,10 +30,7 @@ public final class MacroSlots {
 			SLOTS[i] = KeyBindingHelper.registerKeyBinding(mapping);
 		}
 
-		KeyMapping openConfigMapping = new KeyMapping("key.aurafriendly.open_config", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY);
-		openConfig = KeyBindingHelper.registerKeyBinding(openConfigMapping);
-
-		KeyMapping openFriendsMapping = new KeyMapping("key.aurafriendly.open_friends", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY);
-		openFriends = KeyBindingHelper.registerKeyBinding(openFriendsMapping);
+		KeyMapping openMenuMapping = new KeyMapping("key.aurafriendly.open_menu", InputConstants.Type.KEYSYM, InputConstants.KEY_L, CATEGORY);
+		openMenu = KeyBindingHelper.registerKeyBinding(openMenuMapping);
 	}
 }
