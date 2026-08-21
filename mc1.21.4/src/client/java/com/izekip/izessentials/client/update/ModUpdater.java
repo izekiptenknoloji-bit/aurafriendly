@@ -47,7 +47,7 @@ public final class ModUpdater {
 	private static final String GITHUB_REPO = "izekiptenknoloji-bit/aurafriendly";
 
 	/** Bu mod derlemesinin hedeflendigi Minecraft surumu - release asset'lerini filtrelemek icin. */
-	private static final String ASSET_SUFFIX = "-mc1.21.11.jar";
+	private static final String ASSET_SUFFIX = "-mc1.21.4.jar";
 
 	private static final AtomicBoolean CHECKED_THIS_SESSION = new AtomicBoolean(false);
 
