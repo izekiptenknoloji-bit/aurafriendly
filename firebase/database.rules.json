@@ -1,0 +1,37 @@
+{
+  "rules": {
+    "esp32": {
+      ".read": true,
+      ".write": true
+    },
+    "pc": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "uidLinks": {
+      "$firebaseUid": {
+        ".read": "auth != null && auth.uid === $firebaseUid",
+        ".write": "auth != null && auth.uid === $firebaseUid && (!data.exists() || data.val() === newData.val())",
+        ".validate": "newData.isString()"
+      }
+    },
+    "users": {
+      "$mcUuid": {
+        "presence": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('uidLinks').child(auth.uid).val() === $mcUuid"
+        },
+        "profile": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('uidLinks').child(auth.uid).val() === $mcUuid"
+        },
+        "friends": {
+          "$otherUuid": {
+            ".read": "auth != null && (root.child('uidLinks').child(auth.uid).val() === $mcUuid || root.child('uidLinks').child(auth.uid).val() === $otherUuid)",
+            ".write": "auth != null && (root.child('uidLinks').child(auth.uid).val() === $mcUuid || root.child('uidLinks').child(auth.uid).val() === $otherUuid)"
+          }
+        }
+      }
+    }
+  }
+}
