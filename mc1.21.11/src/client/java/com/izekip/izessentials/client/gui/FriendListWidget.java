@@ -11,11 +11,17 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.screens.ConnectScreen;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.multiplayer.TransferState;
+import net.minecraft.client.multiplayer.resolver.ServerAddress;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-/** Arkadas listesini gosteren, her satirda duruma gore bir aksiyon butonu (Kabul et/Sil) olan liste. */
+/** Arkadas listesini gosteren, her satirda duruma gore aksiyon butonlari (Katil/Kabul et/Sil) olan liste. */
 public class FriendListWidget extends ContainerObjectSelectionList<FriendListWidget.Entry> {
 	public static final int ROW_HEIGHT = 22;
 
@@ -35,6 +41,7 @@ public class FriendListWidget extends ContainerObjectSelectionList<FriendListWid
 		private final Font font;
 		private final FriendRecord friend;
 		private final Button actionButton;
+		private final Button joinButton;
 		private final List<AbstractWidget> widgets;
 
 		Entry(Font font, FriendRecord friend, FriendsManager manager) {
@@ -48,7 +55,27 @@ public class FriendListWidget extends ContainerObjectSelectionList<FriendListWid
 				this.actionButton = Button.builder(Component.literal("Sil"), b -> manager.removeFriend(friend.uuid))
 						.size(70, 18).build();
 			}
-			this.widgets = List.of(actionButton);
+
+			boolean canJoin = friend.state == FriendState.ACCEPTED && friend.online
+					&& friend.serverAddress != null && ServerAddress.isValidAddress(friend.serverAddress);
+			this.joinButton = canJoin
+					? Button.builder(Component.literal("Katil"), b -> joinServer(friend.serverAddress)).size(50, 18).build()
+					: null;
+
+			List<AbstractWidget> list = new ArrayList<>();
+			if (joinButton != null) {
+				list.add(joinButton);
+			}
+			list.add(actionButton);
+			this.widgets = list;
+		}
+
+		private static void joinServer(String address) {
+			Minecraft minecraft = Minecraft.getInstance();
+			ServerAddress serverAddress = ServerAddress.parseString(address);
+			ServerData serverData = new ServerData("Aura Friendly", address, ServerData.Type.OTHER);
+			TransferState emptyTransfer = new TransferState(Map.of(), Map.of(), false);
+			ConnectScreen.startConnecting(minecraft.screen, minecraft, serverAddress, serverData, false, emptyTransfer);
 		}
 
 		@Override
@@ -61,9 +88,18 @@ public class FriendListWidget extends ContainerObjectSelectionList<FriendListWid
 			guiGraphics.drawString(font, name, x, y, AuraTheme.TEXT_WHITE);
 			guiGraphics.drawString(font, statusText(), x, y + 10, statusColor());
 
-			actionButton.setX(x + rowWidth - actionButton.getWidth());
+			int cursor = x + rowWidth;
+			cursor -= actionButton.getWidth();
+			actionButton.setX(cursor);
 			actionButton.setY(y);
 			actionButton.render(guiGraphics, mouseX, mouseY, partialTick);
+
+			if (joinButton != null) {
+				cursor -= joinButton.getWidth() + 4;
+				joinButton.setX(cursor);
+				joinButton.setY(y);
+				joinButton.render(guiGraphics, mouseX, mouseY, partialTick);
+			}
 		}
 
 		private String statusText() {

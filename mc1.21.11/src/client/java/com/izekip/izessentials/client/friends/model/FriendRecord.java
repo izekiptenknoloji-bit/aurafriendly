@@ -9,6 +9,7 @@ public class FriendRecord {
 	public volatile FriendState state;
 	public volatile boolean online;
 	public volatile long lastSeen;
+	public volatile String serverAddress;
 
 	public FriendRecord(UUID uuid, String username, FriendState state) {
 		this.uuid = uuid;

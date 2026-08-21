@@ -210,8 +210,11 @@ public final class FriendsManager {
 			boolean flaggedOnline = obj.has("online") && obj.get("online").getAsBoolean();
 			record.lastSeen = lastSeen;
 			record.online = flaggedOnline && (System.currentTimeMillis() - lastSeen < PRESENCE_STALE_MS);
+			record.serverAddress = (obj.has("serverAddress") && !obj.get("serverAddress").isJsonNull())
+					? obj.get("serverAddress").getAsString() : null;
 		} else {
 			record.online = false;
+			record.serverAddress = null;
 		}
 
 		if (!wasOnline && record.online) {
