@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "aurafriendly",
+	"version": "${version}",
+	"name": "Aura Friendly",
+	"description": "Client-only kisayol (macro) ve arkadas/online durumu modu. Herhangi bir sunucuda calisir, sunucuya kurulum gerektirmez.",
+	"authors": [
+		"izekip"
+	],
+	"contact": {},
+	"license": "CC0-1.0",
+	"icon": "assets/aurafriendly/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			"com.izekip.izessentials.IzEssentials"
+		],
+		"client": [
+			"com.izekip.izessentials.client.IzEssentialsClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

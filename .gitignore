@@ -1,0 +1,23 @@
+# Gradle / Loom
+.gradle/
+build/
+*/build/
+*/.gradle/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / local overrides (bu proje icin gomulu Firebase Web API key sir sayilmaz,
+# ama ileride gercekten gizli bir sey eklenirse buraya girsin diye hazir tutuyoruz)
+local.properties
+*.env
