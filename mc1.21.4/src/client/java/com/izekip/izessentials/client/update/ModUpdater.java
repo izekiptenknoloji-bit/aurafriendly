@@ -9,6 +9,7 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.network.chat.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +51,7 @@ public final class ModUpdater {
 	private static final String ASSET_SUFFIX = "-mc1.21.4.jar";
 
 	private static final AtomicBoolean CHECKED_THIS_SESSION = new AtomicBoolean(false);
+	private static final SystemToast.SystemToastId TOAST_ID = new SystemToast.SystemToastId();
 
 	private ModUpdater() {
 	}
@@ -140,7 +142,8 @@ public final class ModUpdater {
 				}
 			}
 
-			notifyInChat("Yeni surum mevcut: " + remoteVersionStr + " (mevcut: " + localVersion.getFriendlyString() + ")");
+			String notes = json.has("body") && !json.get("body").isJsonNull() ? json.get("body").getAsString() : null;
+			notifyUpdateToast(remoteVersionStr, notes);
 
 			if (downloadUrl == null) {
 				LOGGER.info("Yeni surum var ama bu Minecraft surumu ({}) icin dosya bulunamadi.", ASSET_SUFFIX);
@@ -158,7 +161,7 @@ public final class ModUpdater {
 			Path modsDir = FabricLoader.getInstance().getGameDir().resolve("mods");
 			Path target = modsDir.resolve(assetName);
 			if (Files.exists(target)) {
-				notifyInChat("Yeni surum zaten indirilmis (" + assetName + "). Oyunu yeniden baslat.");
+				notifyRestartToast();
 				return;
 			}
 
@@ -176,19 +179,39 @@ public final class ModUpdater {
 				oldJar.toFile().deleteOnExit();
 			}
 
-			notifyInChat("Yeni surum indirildi (" + assetName + "). Oyunu kapatip tekrar actiginda devreye girecek.");
+			notifyRestartToast();
 			LOGGER.info("Guncelleme indirildi: {}", target);
 		} catch (IOException | InterruptedException e) {
 			LOGGER.warn("Guncelleme indirilemedi.", e);
 		}
 	}
 
-	private static void notifyInChat(String message) {
+	/** Yeni surum bulununca sag ustte cikan kucuk oyun-ici bildirim (achievement/paket bildirimi gibi), tam ekran degil. */
+	private static void notifyUpdateToast(String version, String notes) {
 		Minecraft client = Minecraft.getInstance();
 		client.execute(() -> {
-			if (client.player != null) {
-				client.player.displayClientMessage(Component.literal("[Aura Friendly] " + message), false);
-			}
+			Component title = Component.literal("Aura Friendly - Yeni surum: v" + version);
+			Component message = Component.literal(summarize(notes));
+			SystemToast.add(client.getToastManager(), TOAST_ID, title, message);
 		});
+	}
+
+	private static void notifyRestartToast() {
+		Minecraft client = Minecraft.getInstance();
+		client.execute(() -> SystemToast.add(client.getToastManager(), TOAST_ID,
+				Component.literal("Aura Friendly guncellendi"),
+				Component.literal("Devreye girmesi icin oyunu kapatip tekrar ac.")));
+	}
+
+	/** Release notlarinin ilk satirini toast'a sigacak kadar kisaltir. */
+	private static String summarize(String notes) {
+		if (notes == null || notes.isBlank()) {
+			return "Detaylar icin GitHub'a bak.";
+		}
+		String firstLine = notes.strip().lines().findFirst().orElse("").strip();
+		if (firstLine.isEmpty()) {
+			return "Detaylar icin GitHub'a bak.";
+		}
+		return firstLine.length() > 90 ? firstLine.substring(0, 87) + "..." : firstLine;
 	}
 }
