@@ -177,7 +177,12 @@ public final class ModuleUpdater {
 				Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
 			}
 
-			boolean hotSwapped = tryHotSwap(target);
+			Path currentJar = container.getOrigin().getPaths().isEmpty() ? null : container.getOrigin().getPaths().get(0);
+			boolean assetsChanged = currentJar == null || assetsChanged(currentJar, target);
+			boolean hotSwapped = !assetsChanged && tryHotSwap(target);
+			if (assetsChanged) {
+				LOGGER.info("Yeni surumde kaynak (font/texture/lang) degisikligi var - canli guncelleme atlaniyor, restart istenecek.");
+			}
 			if (hotSwapped) {
 				notifyLiveUpdateToast(version);
 				if (onStatus != null) report(onStatus, "Canli guncellendi: v" + version + " (oyunu kapatmana gerek yok)");
@@ -197,6 +202,37 @@ public final class ModuleUpdater {
 			LOGGER.warn("Guncelleme indirilemedi.", e);
 			if (onStatus != null) report(onStatus, "Indirme basarisiz: " + e.getMessage());
 		}
+	}
+
+	/**
+	 * Iki jar'daki "assets/" altindaki dosyalarin (font, texture, lang...) ayni olup olmadigini
+	 * kontrol eder. Minecraft'in kaynak yoneticisi (ReloadableResourceManager) mod jar'larini
+	 * sadece oyun aciliskten tarar - bizim ContentClassLoader hot-swap'imiz SADECE .class
+	 * dosyalarini degistirir, kaynaklari degil. Bu yuzden assets/ altinda herhangi bir fark
+	 * varsa canli guncelleme guvenilir degildir (yeni font/ikon vs. gorunmez, bozuk cikar) -
+	 * boyle durumda restart-tabanli yola dusulmeli.
+	 */
+	private static boolean assetsChanged(Path oldJar, Path newJar) {
+		try {
+			return !readAssetCrcs(oldJar).equals(readAssetCrcs(newJar));
+		} catch (IOException e) {
+			LOGGER.debug("Asset karsilastirmasi basarisiz, guvenli taraf secildi (restart istenecek): {}", e.toString());
+			return true;
+		}
+	}
+
+	private static java.util.Map<String, Long> readAssetCrcs(Path jarPath) throws IOException {
+		java.util.Map<String, Long> result = new java.util.HashMap<>();
+		try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(jarPath.toFile())) {
+			java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zip.entries();
+			while (entries.hasMoreElements()) {
+				java.util.zip.ZipEntry entry = entries.nextElement();
+				if (!entry.isDirectory() && entry.getName().startsWith("assets/")) {
+					result.put(entry.getName(), entry.getCrc());
+				}
+			}
+		}
+		return result;
 	}
 
 	private static boolean tryHotSwap(Path jarPath) {
