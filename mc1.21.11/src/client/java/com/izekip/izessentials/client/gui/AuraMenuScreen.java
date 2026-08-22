@@ -11,7 +11,7 @@ public class AuraMenuScreen extends Screen {
 	private final Screen parent;
 
 	public AuraMenuScreen(Screen parent) {
-		super(Component.literal("Aura Friendly"));
+		super(Component.literal("Aura Friendly (v0.6.1 - canli guncelleme testi)"));
 		this.parent = parent;
 	}
 
