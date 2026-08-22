@@ -6,8 +6,11 @@ import com.izekip.izessentials.client.config.ShortcutEntry;
 import com.izekip.izessentials.client.core.AuraFriendlyModule;
 import com.izekip.izessentials.client.friends.PresenceManager;
 import com.izekip.izessentials.client.gui.AuraMenuScreen;
+import com.izekip.izessentials.client.gui.TitleScreenFriendsPanel;
 import com.izekip.izessentials.client.macro.ChatSender;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.TitleScreen;
 
 import java.util.List;
 
@@ -38,6 +41,14 @@ public class ContentEntryPoint implements AuraFriendlyModule {
 	@Override
 	public void onOpenMenu(Minecraft client) {
 		client.setScreen(new AuraMenuScreen(null));
+	}
+
+	@Override
+	public void onScreenInit(Minecraft client, Screen screen) {
+		// Sadece oyunun ana ekraninda: kompakt arkadas panelini ekle (salt-okunur).
+		if (screen instanceof TitleScreen) {
+			TitleScreenFriendsPanel.attach(screen);
+		}
 	}
 
 	@Override

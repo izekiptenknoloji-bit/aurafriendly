@@ -16,8 +16,8 @@
       }
     },
     "usernames": {
-      ".read": "auth != null",
       "$lowercaseName": {
+        ".read": "auth != null",
         ".write": "auth != null && newData.val() === root.child('uidLinks').child(auth.uid).val() && (!data.exists() || data.val() === newData.val())",
         ".validate": "newData.isString()"
       }
@@ -25,11 +25,11 @@
     "users": {
       "$mcUuid": {
         "presence": {
-          ".read": "auth != null",
+          ".read": "auth != null && (root.child('uidLinks').child(auth.uid).val() === $mcUuid || root.child('users').child($mcUuid).child('friends').child(root.child('uidLinks').child(auth.uid).val()).val() === 'accepted')",
           ".write": "auth != null && root.child('uidLinks').child(auth.uid).val() === $mcUuid"
         },
         "profile": {
-          ".read": "auth != null",
+          ".read": "auth != null && (root.child('uidLinks').child(auth.uid).val() === $mcUuid || root.child('users').child($mcUuid).child('friends').child(root.child('uidLinks').child(auth.uid).val()).exists())",
           ".write": "auth != null && root.child('uidLinks').child(auth.uid).val() === $mcUuid"
         },
         "friends": {

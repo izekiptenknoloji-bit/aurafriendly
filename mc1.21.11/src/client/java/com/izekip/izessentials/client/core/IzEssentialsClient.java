@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
@@ -31,6 +32,11 @@ public class IzEssentialsClient implements ClientModInitializer {
 		});
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ModuleHolder.current().onDisconnect(client));
 		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ModuleHolder.current().onDisconnect(client));
+
+		// Ekran acilis olayi: kayit burada (core) yapilir ki canli guncellemede eski modulun
+		// callback.i global event listesinde asili kalip classloader sizdirmasin.
+		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) ->
+				ModuleHolder.current().onScreenInit(client, screen));
 
 		IzEssentials.LOGGER.info("Aura Friendly core hazir.");
 	}

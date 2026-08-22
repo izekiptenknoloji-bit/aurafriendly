@@ -21,6 +21,10 @@ public final class NoOpModule implements AuraFriendlyModule {
 	}
 
 	@Override
+	public void onScreenInit(Minecraft client, net.minecraft.client.gui.screens.Screen screen) {
+	}
+
+	@Override
 	public void onMacroSlotPressed(Minecraft client, int slotIndex) {
 	}
 

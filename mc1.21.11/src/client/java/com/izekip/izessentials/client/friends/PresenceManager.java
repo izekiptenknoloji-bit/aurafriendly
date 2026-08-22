@@ -35,28 +35,69 @@ public final class PresenceManager {
 	private static ScheduledExecutorService heartbeatExecutor;
 	private static volatile String serverAddress;
 	private static volatile String lastError;
+	/** true: ana ekran (salt-okunur, heartbeat yok). false: oyun ici tam oturum. */
+	private static volatile boolean menuMode;
 
 	private PresenceManager() {
 	}
 
 	/** ClientPlayConnectionEvents.JOIN'de cagrilir. Sadece altyapiyi kurar; giris yapilmissa oturumu da baslatir. */
 	public static void start(String serverAddress) {
+		// Ana ekranda kurulmus "salt-okunur" oturum varsa once onu kapat: oyun ici oturum
+		// gercek oyuncu UUID'siyle ve heartbeat ile yeniden kurulmali (yarim durumda birlestirmek yerine
+		// temiz baslangic - daha az kose durumu, daha az hata riski).
+		if (STARTED.get() && menuMode) {
+			stop();
+		}
+
 		PresenceManager.serverAddress = serverAddress;
+		PresenceManager.menuMode = false;
 		if (!STARTED.compareAndSet(false, true)) {
 			LOGGER.debug("PresenceManager altyapisi zaten kurulu, tekrar kurulmadi.");
 			return;
 		}
 
+		setUpInfrastructure();
+
+		if (auth.hasStoredCredentials()) {
+			Thread.ofVirtual().name("aurafriendly-autologin").start(PresenceManager::beginSession);
+		}
+	}
+
+	/**
+	 * Ana ekranda (TitleScreen) cagrilir: arkadas listesini SALT-OKUNUR gostermek icin baglanir.
+	 * Oyun ici oturumdan farki - kendi durumumuzu yayinlamayiz (heartbeat yok), cunku menude
+	 * beklerken "cevrimici" gorunmek dogru olmaz. Zaten oyun ici bir oturum varsa hicbir sey yapmaz.
+	 */
+	public static void startMenu() {
+		if (STARTED.get()) {
+			return;
+		}
+		IdentityStore.Identity identity = IdentityStore.get();
+		if (identity == null) {
+			// Henuz hic sunucuya girilmemis - gercek UUID'yi bilmiyoruz, sessizce vazgec.
+			return;
+		}
+		if (!STARTED.compareAndSet(false, true)) {
+			return;
+		}
+
+		PresenceManager.serverAddress = null;
+		PresenceManager.menuMode = true;
+		setUpInfrastructure();
+
+		if (auth.hasStoredCredentials()) {
+			Thread.ofVirtual().name("aurafriendly-menu-session").start(PresenceManager::beginSession);
+		}
+	}
+
+	private static void setUpInfrastructure() {
 		httpClient = HttpClient.newBuilder()
 				.connectTimeout(Duration.ofSeconds(10))
 				.build();
 		auth = new FirebaseAuthClient(httpClient);
 		rest = new FirebaseRestClient(httpClient, auth);
 		friendsManager = new FriendsManager(httpClient, auth, rest);
-
-		if (auth.hasStoredCredentials()) {
-			Thread.ofVirtual().name("aurafriendly-autologin").start(PresenceManager::beginSession);
-		}
 	}
 
 	/** LoginScreen'de basarili giris/kayit sonrasi cagrilir. */
@@ -136,6 +177,20 @@ public final class PresenceManager {
 			return;
 		}
 		try {
+			if (menuMode) {
+				// Ana ekran: oyuncu nesnesi yok, en son bilinen kimligi kullaniriz.
+				IdentityStore.Identity identity = IdentityStore.get();
+				if (identity == null) {
+					SESSION_ACTIVE.set(false);
+					return;
+				}
+				auth.getIdToken();
+				friendsManager.start(identity.uuid);
+				lastError = null;
+				LOGGER.info("Aura Friendly ana ekran oturumu baslatildi (salt-okunur).");
+				return;
+			}
+
 			LocalPlayer player = Minecraft.getInstance().player;
 			if (player == null) {
 				SESSION_ACTIVE.set(false);
@@ -148,6 +203,8 @@ public final class PresenceManager {
 			String username = player.getGameProfile().name();
 			rest.put("/users/" + uuid + "/profile", "{\"username\":\"" + escapeJson(username) + "\"}");
 			registerUsernameIndex(username, uuid);
+			// Ana ekranda kullanmak uzere gercek UUID'yi hatirla (bkz. IdentityStore).
+			IdentityStore.save(uuid, username);
 
 			heartbeatExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
 				Thread thread = new Thread(runnable, "aurafriendly-heartbeat");

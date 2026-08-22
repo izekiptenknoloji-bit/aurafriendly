@@ -21,6 +21,13 @@ public interface AuraFriendlyModule {
 	/** Ana menu tusuna (varsayilan L) basildiginda. */
 	void onOpenMenu(Minecraft client);
 
+	/**
+	 * Bir ekran acildiginda (ScreenEvents.AFTER_INIT). Kayit CORE.da yapilir; boylece canli
+	 * guncellemede eski modulun callback.i global event listesinde asili kalmaz (sizinti olmaz).
+	 * Icerik modulu burada ornegin ana ekrana (TitleScreen) kendi panelini ekler.
+	 */
+	void onScreenInit(Minecraft client, net.minecraft.client.gui.screens.Screen screen);
+
 	/** Kisayol slotlarindan biri (0..11) tetiklendiginde. */
 	void onMacroSlotPressed(Minecraft client, int slotIndex);
 
