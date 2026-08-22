@@ -2,7 +2,7 @@ package com.izekip.izessentials.client.config.screen;
 
 import com.izekip.izessentials.client.config.ShortcutEntry;
 import com.izekip.izessentials.client.gui.AuraTheme;
-import com.izekip.izessentials.client.macro.MacroSlots;
+import com.izekip.izessentials.client.core.MacroSlots;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

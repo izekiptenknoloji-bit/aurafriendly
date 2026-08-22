@@ -16,7 +16,7 @@
 			"com.izekip.izessentials.IzEssentials"
 		],
 		"client": [
-			"com.izekip.izessentials.client.IzEssentialsClient"
+			"com.izekip.izessentials.client.core.IzEssentialsClient"
 		]
 	},
 	"depends": {

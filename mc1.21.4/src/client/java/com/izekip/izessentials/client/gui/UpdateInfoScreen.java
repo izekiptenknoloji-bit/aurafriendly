@@ -1,6 +1,6 @@
 package com.izekip.izessentials.client.gui;
 
-import com.izekip.izessentials.client.update.ModUpdater;
+import com.izekip.izessentials.client.core.ModuleUpdater;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
@@ -26,7 +26,7 @@ public class UpdateInfoScreen extends Screen {
 		int bottom = AuraTheme.contentBottom(this.height);
 		int contentWidth = right - left;
 
-		Component versionLine = AuraTheme.colored("Mevcut surum: v" + ModUpdater.getLocalVersionFriendly(), AuraTheme.TEXT_WHITE);
+		Component versionLine = AuraTheme.colored("Mevcut surum: v" + ModuleUpdater.getLocalVersionFriendly(), AuraTheme.TEXT_WHITE);
 		addRenderableWidget(new StringWidget(left, top, contentWidth, this.font.lineHeight, versionLine, this.font));
 
 		Component repoLine = AuraTheme.colored("github.com/izekiptenknoloji-bit/aurafriendly/releases", AuraTheme.TEXT_MUTED);
@@ -44,7 +44,7 @@ public class UpdateInfoScreen extends Screen {
 
 	private void checkNow() {
 		statusWidget.setMessage(AuraTheme.colored("Kontrol ediliyor...", AuraTheme.TEXT_MUTED));
-		ModUpdater.checkNow(status -> statusWidget.setMessage(AuraTheme.colored(status, AuraTheme.TEXT_WHITE)));
+		ModuleUpdater.checkNow(status -> statusWidget.setMessage(AuraTheme.colored(status, AuraTheme.TEXT_WHITE)));
 	}
 
 	@Override

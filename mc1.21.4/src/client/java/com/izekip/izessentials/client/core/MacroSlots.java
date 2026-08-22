@@ -1,32 +1,29 @@
-package com.izekip.izessentials.client.macro;
+package com.izekip.izessentials.client.core;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 
-import com.izekip.izessentials.client.config.ModConfig;
-
 /**
- * Sabit sayida genel "macro slot" KeyMapping'i olarak kaydeder. Hangi tusun
- * hangi metni gonderecegi ModConfig'te tutulur (bkz. ChatSender, MacroTickHandler) -
- * boylece tus sayisi sabit kalirken gonderilen komut tamamen kullaniciya kalir.
+ * Tus kaydi (KeyMapping) - CORE'un sabit sorumlulugu. Fabric'in KeyBindingHelper'inda
+ * "unregister" diye bir sey olmadigi icin bu kayitlar canli guncellemeyle degistirilemez,
+ * hep ayni kalir. Tusa basilinca ne olacagi (hangi metin gonderilecek, hangi ekran acilacak)
+ * ise degistirilebilir icerik modulune (bkz. AuraFriendlyModule) yonlendirilir.
  *
- * NOT: 1.21.4'te KeyMapping.Category henuz bir kayit nesnesi degil, duz String
- * kategori adi (1.21.11 surumunden farki budur).
- *
- * Tum ekranlara (kisayollar, arkadaslar, guncellemeler, gizlilik) tek bir ana menu
- * uzerinden erisiliyor - o menu de varsayilan olarak "L" tusuna baglidir.
+ * NOT: 1.21.4'te KeyMapping.Category henuz bir kayit nesnesi degil, duz String kategori adi.
  */
 public final class MacroSlots {
+	public static final int SLOT_COUNT = 12;
 	public static final String CATEGORY = "key.categories.aurafriendly";
-	public static final KeyMapping[] SLOTS = new KeyMapping[ModConfig.SHORTCUT_SLOT_COUNT];
+
+	public static final KeyMapping[] SLOTS = new KeyMapping[SLOT_COUNT];
 	public static KeyMapping openMenu;
 
 	private MacroSlots() {
 	}
 
 	public static void registerAll() {
-		for (int i = 0; i < ModConfig.SHORTCUT_SLOT_COUNT; i++) {
+		for (int i = 0; i < SLOT_COUNT; i++) {
 			String translationKey = "key.aurafriendly.macro_slot_" + (i + 1);
 			KeyMapping mapping = new KeyMapping(translationKey, InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY);
 			SLOTS[i] = KeyBindingHelper.registerKeyBinding(mapping);
