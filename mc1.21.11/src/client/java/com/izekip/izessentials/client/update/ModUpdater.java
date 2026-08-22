@@ -116,7 +116,7 @@ public final class ModUpdater {
 				ModContainer container = containerOpt.get();
 				Version localVersion = container.getMetadata().getVersion();
 
-				HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+				HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
 				HttpRequest request = HttpRequest.newBuilder(URI.create("https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest"))
 						.header("Accept", "application/vnd.github+json")
 						.timeout(Duration.ofSeconds(10))
@@ -184,7 +184,7 @@ public final class ModUpdater {
 			ModContainer container = containerOpt.get();
 			Version localVersion = container.getMetadata().getVersion();
 
-			HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+			HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
 			HttpRequest request = HttpRequest.newBuilder(URI.create("https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest"))
 					.header("Accept", "application/vnd.github+json")
 					.timeout(Duration.ofSeconds(10))
