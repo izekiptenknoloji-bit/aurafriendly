@@ -14,10 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +83,7 @@ public final class FriendsManager {
 			try {
 				String targetUuid = resolveUuid(username);
 				if (targetUuid == null) {
-					onError.accept("Kullanici bulunamadi: " + username);
+					onError.accept("Bulunamadi: " + username + " - once bir kez Aura Friendly ile giris yapmis olmali.");
 					return;
 				}
 				if (targetUuid.equalsIgnoreCase(myUuid)) {
@@ -230,20 +227,32 @@ public final class FriendsManager {
 		}
 	}
 
+	/**
+	 * Kullanici adini UUID'ye cevirir. Mojang API'si KULLANILMAZ: oyuncu offline/cracked modda
+	 * oynuyorsa oyunun kullandigi UUID, Mojang'daki premium UUID ile ayni DEGILDIR (offline UUID
+	 * isimden turetilir, bkz. UUID.nameUUIDFromBytes("OfflinePlayer:" + isim)). Bunun yerine kendi
+	 * veritabanimizdaki isim dizinine bakariz - orayi her oyuncu giris yaptiginda kendisi doldurur,
+	 * boylece hem premium hem offline hesaplarda dogru sonucu verir.
+	 */
 	private String resolveUuid(String username) throws IOException, InterruptedException {
-		HttpRequest request = HttpRequest.newBuilder(URI.create("https://api.mojang.com/users/profiles/minecraft/" + username))
-				.GET().build();
-		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		if (response.statusCode() != 200) {
+		String key = usernameKey(username);
+		if (key == null) {
 			return null;
 		}
-		JsonObject obj = JsonParser.parseString(response.body()).getAsJsonObject();
-		return insertDashes(obj.get("id").getAsString());
+		String json = rest.get("/usernames/" + key);
+		if (json == null || "null".equals(json)) {
+			return null;
+		}
+		String resolved = json.replace("\"", "").trim();
+		return resolved.isEmpty() ? null : resolved;
 	}
 
-	private static String insertDashes(String raw) {
-		return raw.replaceFirst(
-				"(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{12})",
-				"$1-$2-$3-$4-$5");
+	/** Firebase anahtarlarinda . $ # [ ] / yasaktir; Minecraft isimleri zaten harf/rakam/alt cizgi. */
+	public static String usernameKey(String username) {
+		if (username == null) {
+			return null;
+		}
+		String trimmed = username.trim().toLowerCase(java.util.Locale.ROOT);
+		return trimmed.matches("[a-z0-9_]{1,16}") ? trimmed : null;
 	}
 }

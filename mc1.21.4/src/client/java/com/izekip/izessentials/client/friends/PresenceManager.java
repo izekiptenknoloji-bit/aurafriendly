@@ -145,7 +145,9 @@ public final class PresenceManager {
 
 			auth.getIdToken();
 			linkUidIfNeeded(uuid);
-			rest.put("/users/" + uuid + "/profile", "{\"username\":\"" + escapeJson(player.getGameProfile().getName()) + "\"}");
+			String username = player.getGameProfile().getName();
+			rest.put("/users/" + uuid + "/profile", "{\"username\":\"" + escapeJson(username) + "\"}");
+			registerUsernameIndex(username, uuid);
 
 			heartbeatExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
 				Thread thread = new Thread(runnable, "aurafriendly-heartbeat");
@@ -161,6 +163,25 @@ public final class PresenceManager {
 			lastError = e.getMessage() != null ? e.getMessage() : e.toString();
 			LOGGER.warn("Aura Friendly oturumu baslatilamadi.", e);
 			SESSION_ACTIVE.set(false);
+		}
+	}
+
+	/**
+	 * Kullanici adi -> UUID dizinine kendi kaydimizi yazar. Arkadas eklerken Mojang API'sine
+	 * guvenemeyiz (offline/cracked hesaplarda oyunun UUID'si Mojang'dakinden farklidir), bu yuzden
+	 * herkes giriste kendi adini kendi UUID'siyle buraya kaydeder. Kural geregi sadece KENDI
+	 * UUID'ni yazabilirsin ve mevcut bir kayit ustune farkli deger yazilamaz. Basarisiz olursa
+	 * oturum bozulmaz - sadece o oyuncu isimle aranamaz.
+	 */
+	private static void registerUsernameIndex(String username, String uuid) {
+		String key = FriendsManager.usernameKey(username);
+		if (key == null) {
+			return;
+		}
+		try {
+			rest.put("/usernames/" + key, "\"" + uuid + "\"");
+		} catch (Exception e) {
+			LOGGER.warn("Kullanici adi dizinine yazilamadi ({}). Baskalari seni isimle ekleyemeyebilir.", key, e);
 		}
 	}
 
