@@ -8,7 +8,12 @@ import net.minecraft.network.chat.Component;
 /**
  * Essential/Feather Client tarzi sade sidebar butonu. Vanilla gri buton dokusu hic
  * kullanilmaz - renderDefaultSprite() cagrilmadigi surece devreye girmiyor (bkz. AbstractButton).
- * Sola hizali metin, ince kenarlik, hover'da parlayan renkler.
+ * Sola hizali metin, yumusatilmis (rounded) kenarlar, hover'da parlayan renkler.
+ *
+ * Yuvarlatma teknigi: Minecraft'ta gercek egri cizim yok, bu yuzden dolgu bir "arti/artiy"
+ * seklinde (yatay + dikey iki dikdortgen) cizilir - kose kareleri hic boyanmaz, boylece
+ * arkada ne olursa olsun (gradyan, dunya) oradan gorunur ve kose yumusamis gibi durur.
+ * Kenarlik da 4 ayri kisa cizgi olarak, koselere deymeden cizilir.
  */
 public class SidebarButton extends Button {
 	private static final int BG_DEFAULT = 0x880F0F1A;
@@ -17,6 +22,7 @@ public class SidebarButton extends Button {
 	private static final int BORDER_HOVER = 0xFF7A52CC;
 	private static final int TEXT_COLOR = 0xFFFFFFFF;
 	private static final int TEXT_PADDING = 10;
+	private static final int RADIUS = 4;
 
 	private final Font font;
 
@@ -31,10 +37,24 @@ public class SidebarButton extends Button {
 		int bg = hovered ? BG_HOVER : BG_DEFAULT;
 		int border = hovered ? BORDER_HOVER : BORDER_DEFAULT;
 
-		guiGraphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), bg);
-		guiGraphics.renderOutline(getX(), getY(), getWidth(), getHeight(), border);
+		drawRoundedRect(guiGraphics, getX(), getY(), getWidth(), getHeight(), RADIUS, bg, border);
 
 		int textY = getY() + (getHeight() - font.lineHeight) / 2;
 		guiGraphics.drawString(font, getMessage(), getX() + TEXT_PADDING, textY, TEXT_COLOR);
+	}
+
+	/** Kose kareleri bos birakilan "yumusak kenarli" dikdortgen - herhangi bir arka planla calisir. */
+	static void drawRoundedRect(GuiGraphics guiGraphics, int x, int y, int width, int height, int radius, int fillColor, int borderColor) {
+		int r = Math.min(radius, Math.min(width, height) / 2);
+
+		// Dolgu: yatay + dikey seritlerin bilesimi (kose kareleri bos kalir).
+		guiGraphics.fill(x + r, y, x + width - r, y + height, fillColor);
+		guiGraphics.fill(x, y + r, x + width, y + height - r, fillColor);
+
+		// Kenarlik: 4 kisa cizgi, koselere degmeden.
+		guiGraphics.fill(x + r, y, x + width - r, y + 1, borderColor);
+		guiGraphics.fill(x + r, y + height - 1, x + width - r, y + height, borderColor);
+		guiGraphics.fill(x, y + r, x + 1, y + height - r, borderColor);
+		guiGraphics.fill(x + width - 1, y + r, x + width, y + height - r, borderColor);
 	}
 }
