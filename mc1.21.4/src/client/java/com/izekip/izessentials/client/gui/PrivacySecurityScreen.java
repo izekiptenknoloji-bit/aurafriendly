@@ -33,7 +33,7 @@ public class PrivacySecurityScreen extends Screen {
 		addRenderableWidget(new StringWidget(left, top, contentWidth, this.font.lineHeight, status, this.font));
 
 		String info = "Sifren hicbir zaman kaydedilmez, sadece giris aninda kullanilir. "
-				+ "Sunucuya girince kullanici adin ve online durumun Firebase'e yazilir, "
+				+ "Sunucuya girince kullanici adin ve online durumun Izekip Cloud'a yazilir, "
 				+ "sadece kabul ettigin arkadaslar bunu gorebilir. Kaynak kodu acik: "
 				+ "github.com/izekiptenknoloji-bit/aurafriendly";
 		MultiLineTextWidget infoWidget = new MultiLineTextWidget(AuraTheme.colored(info, AuraTheme.TEXT_MUTED), this.font)

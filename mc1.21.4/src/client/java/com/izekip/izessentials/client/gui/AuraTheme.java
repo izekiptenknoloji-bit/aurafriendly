@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Style;
 public final class AuraTheme {
 	public static final int ACCENT_PURPLE = 0xFF8A5CF6;
 	public static final int ACCENT_BLUE = 0xFF3B82F6;
-	public static final int PANEL_BG = 0xE0121018;
+	public static final int PANEL_BG = 0xA0121018;
 	public static final int TITLE_BAR_TOP = 0xFF6D3FD1;
 	public static final int TITLE_BAR_BOTTOM = 0xFF3B82F6;
 	public static final int TEXT_WHITE = 0xFFFFFFFF;

@@ -37,6 +37,7 @@ public final class FirebaseAuthClient {
 	private String refreshToken;
 	private String idToken;
 	private long idTokenExpiresAtMillis;
+	private String email;
 
 	public FirebaseAuthClient(HttpClient httpClient) {
 		this.httpClient = httpClient;
@@ -52,6 +53,10 @@ public final class FirebaseAuthClient {
 		return localId;
 	}
 
+	public synchronized String getEmail() {
+		return email;
+	}
+
 	public synchronized void signUp(String email, String password) throws IOException, InterruptedException {
 		authenticate("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + FirebaseConfig.WEB_API_KEY, email, password);
 	}
@@ -65,6 +70,7 @@ public final class FirebaseAuthClient {
 		this.refreshToken = null;
 		this.idToken = null;
 		this.idTokenExpiresAtMillis = 0;
+		this.email = null;
 		try {
 			Files.deleteIfExists(authFile);
 		} catch (IOException e) {
@@ -108,6 +114,7 @@ public final class FirebaseAuthClient {
 		this.localId = json.get("localId").getAsString();
 		this.refreshToken = json.get("refreshToken").getAsString();
 		this.idToken = json.get("idToken").getAsString();
+		this.email = json.has("email") ? json.get("email").getAsString() : email;
 		applyExpiry(json.get("expiresIn").getAsString());
 		persist();
 	}
@@ -160,6 +167,7 @@ public final class FirebaseAuthClient {
 				if (data != null) {
 					this.localId = data.localId;
 					this.refreshToken = data.refreshToken;
+					this.email = data.email;
 				}
 			}
 		} catch (IOException | JsonSyntaxException e) {
@@ -172,6 +180,7 @@ public final class FirebaseAuthClient {
 			AuthData data = new AuthData();
 			data.localId = localId;
 			data.refreshToken = refreshToken;
+			data.email = email;
 			Path tmp = authFile.resolveSibling(authFile.getFileName() + ".tmp");
 			Files.writeString(tmp, GSON.toJson(data), StandardCharsets.UTF_8);
 			Files.move(tmp, authFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
@@ -183,5 +192,6 @@ public final class FirebaseAuthClient {
 	private static class AuthData {
 		String localId;
 		String refreshToken;
+		String email;
 	}
 }

@@ -21,7 +21,7 @@ public class AuraMenuScreen extends Screen {
 		int right = AuraTheme.contentRight(this.width);
 		int centerX = (left + right) / 2;
 		int buttonWidth = Math.min(200, right - left);
-		int top = AuraTheme.CONTENT_TOP + 10;
+		int top = AuraTheme.CONTENT_TOP;
 		int spacing = 24;
 
 		addRenderableWidget(Button.builder(Component.literal("Kisayollar"), b -> this.minecraft.setScreen(new ShortcutConfigScreen(this)))
@@ -33,11 +33,14 @@ public class AuraMenuScreen extends Screen {
 		addRenderableWidget(Button.builder(Component.literal("Guncellemeler"), b -> this.minecraft.setScreen(new UpdateInfoScreen(this)))
 				.bounds(centerX - buttonWidth / 2, top + spacing * 2, buttonWidth, 20).build());
 
-		addRenderableWidget(Button.builder(Component.literal("Gizlilik ve Guvenlik"), b -> this.minecraft.setScreen(new PrivacySecurityScreen(this)))
+		addRenderableWidget(Button.builder(Component.literal("Hesap Bilgilerim"), b -> this.minecraft.setScreen(new AccountInfoScreen(this)))
 				.bounds(centerX - buttonWidth / 2, top + spacing * 3, buttonWidth, 20).build());
 
+		addRenderableWidget(Button.builder(Component.literal("Gizlilik ve Guvenlik"), b -> this.minecraft.setScreen(new PrivacySecurityScreen(this)))
+				.bounds(centerX - buttonWidth / 2, top + spacing * 4, buttonWidth, 20).build());
+
 		addRenderableWidget(Button.builder(Component.literal("Kapat"), b -> closeScreen())
-				.bounds(centerX - buttonWidth / 2, top + spacing * 4 + 10, buttonWidth, 20).build());
+				.bounds(centerX - buttonWidth / 2, top + spacing * 5 + 6, buttonWidth, 20).build());
 	}
 
 	@Override
